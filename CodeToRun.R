@@ -15,31 +15,28 @@
 # ENVIRONMENT SETTINGS NEEDED FOR RUNNING Glp1Dili ------------
 Sys.setenv("_JAVA_OPTIONS"="-Xmx4g") # Sets the Java maximum heap space to 4GB
 Sys.setenv("VROOM_THREADS"=1) # Sets the number of threads to 1 to avoid deadlocks on file system
+options(andromedaTempFolder = "e:/andromedaTemp") # Where temp Andromeda files will be written
 
 ##=========== START OF INPUTS ==========
-cdmDatabaseSchema <- "main"
-workDatabaseSchema <- "main"
-outputLocation <- file.path(getwd(), "results")
-databaseName <- "Eunomia" # Only used as a folder name for results from the study
-minCellCount <- 5
-cohortTableName <- "sample_study"
+options(sqlRenderTempEmulationSchema = "scratch.scratch_mschuemi") # For database platforms that don't support temp tables
+cdmDatabaseSchema <- "jmdc.cdm_jmdc_v3044" # The database / schema where the data in CDM format live
+workDatabaseSchema <- "scratch.scratch_mschuemi" # A database /schema where study tables can be written
+cohortTableName <- "sample_study_jmdc" # Where the cohorts will be written
+outputLocation <- "e:/testGlp1Dili" # Where the intermediate and output files will be written
+databaseName <- "JMDC" # Only used as a folder name for results from the study
+minCellCount <- 5 # Minimum cell count for inclusion in output tables
+
 
 # Create the connection details for your CDM
 # More details on how to do this are found here:
 # https://ohdsi.github.io/DatabaseConnector/reference/createConnectionDetails.html
-# connectionDetails <- DatabaseConnector::createConnectionDetails(
-#   dbms = Sys.getenv("DBMS_TYPE"),
-#   connectionString = Sys.getenv("CONNECTION_STRING"),
-#   user = Sys.getenv("DBMS_USERNAME"),
-#   password = Sys.getenv("DBMS_PASSWORD")
-# )
+connectionDetails <- DatabaseConnector::createConnectionDetails(
+  dbms = "spark",
+  connectionString = keyring::key_get("databricksConnectionString"),
+  user = "token",
+  password = keyring::key_get("databricksToken")
+)
 
-# For this example we will use the Eunomia sample data 
-# set. This library is not installed by default so you
-# can install this by running:
-#
-# install.packages("Eunomia")
-connectionDetails <- Eunomia::getEunomiaConnectionDetails()
 
 # You can use this snippet to test your connection
 #conn <- DatabaseConnector::connect(connectionDetails)

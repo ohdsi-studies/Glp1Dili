@@ -15,64 +15,57 @@
 # remotes::install_github("OHDSI/ROhdsiWebApi")
 library(dplyr)
 # baseUrl <- "https://atlas-demo.ohdsi.org/WebAPI"
-baseUrl <- Sys.getenv("Glp1DiliAtlas")
+baseUrl <- Sys.getenv("baseUrl")
 # Use this if your WebAPI instance has security enables
-# ROhdsiWebApi::authorizeWebApi(
-#   baseUrl = baseUrl,
-#   authMethod = "windows"
-# )
+ROhdsiWebApi::authorizeWebApi(
+  baseUrl = baseUrl,
+  authMethod = "windows"
+)
 cohortDefinitionSet <- ROhdsiWebApi::exportCohortDefinitionSet(
   baseUrl = baseUrl,
   cohortIds = c(
-    467, # GLP1R user (vs DPP4i) #
-    468, # DPP4 user (vs GLP1Ra) #
-    475, # GLP1R user (vs SGLT2i) #
-    477, # SGLT2i user (vs GLR1Ra) #
-    469, # All events of Acute Liver Injury, NO viral hepatitis or alcoholic hepatic failure #
-    480, # Newly developed abnormal liver test #
-    484, # Bile duct or gallbladder disease with hospitalization #
-    
-    471, #GLP1R exposure
-    472, #DPP4i exposure
-    479, #SGLT2i exposure
-    473 #indication (type 2 DM)
+     19018, # GLP-1
+     19019, # DPP-4
+     16968  # ALI
   ),
   generateStats = TRUE
 )
+readr::write_csv(cohortDefinitionSet, "inst/Cohorts.csv")
 
-# Rename cohorts
-cohortDefinitionSet[cohortDefinitionSet$cohortId == 467,]$cohortName <- "GLP1R user (vs DPP4i)"
-cohortDefinitionSet[cohortDefinitionSet$cohortId == 468,]$cohortName <- "DPP4 user (vs GLP1Ra)"
-cohortDefinitionSet[cohortDefinitionSet$cohortId == 475,]$cohortName <- "GLP1R user (vs SGLT2i)"
-cohortDefinitionSet[cohortDefinitionSet$cohortId == 477,]$cohortName <- "SGLT2i user (vs GLR1Ra)"
-
-#### Re-number cohorts####
-# GLP1Ra vs DPP4i
-cohortDefinitionSet[cohortDefinitionSet$cohortId == 467,]$cohortId <- 11
-cohortDefinitionSet[cohortDefinitionSet$cohortId == 468,]$cohortId <- 12
-
-# GLP1Ra vs DPP4i
-cohortDefinitionSet[cohortDefinitionSet$cohortId == 475,]$cohortId <- 21
-cohortDefinitionSet[cohortDefinitionSet$cohortId == 477,]$cohortId <- 22
-
-# outcomes
-cohortDefinitionSet[cohortDefinitionSet$cohortId == 469,]$cohortId <- 101
-cohortDefinitionSet[cohortDefinitionSet$cohortId == 480,]$cohortId <- 102
-cohortDefinitionSet[cohortDefinitionSet$cohortId == 484,]$cohortId <- 103
-
-cohortDefinitionSet[cohortDefinitionSet$cohortId == 471,]$cohortId <- 201
-cohortDefinitionSet[cohortDefinitionSet$cohortId == 472,]$cohortId <- 202
-cohortDefinitionSet[cohortDefinitionSet$cohortId == 473,]$cohortId <- 301
-
-# Save the cohort definition set
-# NOTE: Update settingsFileName, jsonFolder and sqlFolder
-# for your study.
-CohortGenerator::saveCohortDefinitionSet(
-  cohortDefinitionSet = cohortDefinitionSet,
-  settingsFileName = "inst/Cohorts.csv",
-  jsonFolder = "inst/cohorts",
-  sqlFolder = "inst/sql/sql_server",
-)
+# 
+# # Rename cohorts
+# cohortDefinitionSet[cohortDefinitionSet$cohortId == 467,]$cohortName <- "GLP-1"
+# cohortDefinitionSet[cohortDefinitionSet$cohortId == 468,]$cohortName <- "DPP-4"
+# cohortDefinitionSet[cohortDefinitionSet$cohortId == 475,]$cohortName <- "GLP1R user (vs SGLT2i)"
+# cohortDefinitionSet[cohortDefinitionSet$cohortId == 477,]$cohortName <- "SGLT2i user (vs GLR1Ra)"
+# 
+# #### Re-number cohorts####
+# # GLP1Ra vs DPP4i
+# cohortDefinitionSet[cohortDefinitionSet$cohortId == 467,]$cohortId <- 11
+# cohortDefinitionSet[cohortDefinitionSet$cohortId == 468,]$cohortId <- 12
+# 
+# # GLP1Ra vs DPP4i
+# cohortDefinitionSet[cohortDefinitionSet$cohortId == 475,]$cohortId <- 21
+# cohortDefinitionSet[cohortDefinitionSet$cohortId == 477,]$cohortId <- 22
+# 
+# # outcomes
+# cohortDefinitionSet[cohortDefinitionSet$cohortId == 469,]$cohortId <- 101
+# cohortDefinitionSet[cohortDefinitionSet$cohortId == 480,]$cohortId <- 102
+# cohortDefinitionSet[cohortDefinitionSet$cohortId == 484,]$cohortId <- 103
+# 
+# cohortDefinitionSet[cohortDefinitionSet$cohortId == 471,]$cohortId <- 201
+# cohortDefinitionSet[cohortDefinitionSet$cohortId == 472,]$cohortId <- 202
+# cohortDefinitionSet[cohortDefinitionSet$cohortId == 473,]$cohortId <- 301
+# 
+# # Save the cohort definition set
+# # NOTE: Update settingsFileName, jsonFolder and sqlFolder
+# # for your study.
+# CohortGenerator::saveCohortDefinitionSet(
+#   cohortDefinitionSet = cohortDefinitionSet,
+#   settingsFileName = "inst/Cohorts.csv",
+#   jsonFolder = "inst/cohorts",
+#   sqlFolder = "inst/sql/sql_server",
+# )
 
 # Download and save the covariates to exclude
 covariatesToExcludeConceptSet <- ROhdsiWebApi::getConceptSetDefinition(

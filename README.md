@@ -1,13 +1,13 @@
 Use of GLP-1 receptor agonists and subsequent risk of acute liver injury – A self-controlled case series (SCCS) analyses in the OMOP CDM (GLP1-T2DM)
 =============
 
-<img src="https://img.shields.io/badge/Study%20Status-Repo%20Created-lightgray.svg" alt="Study Status: Repo Created">
+<img src="https://img.shields.io/badge/Study%20Status-Started-blue.svg" alt="Study Status: Started">
 
 - Analytics use case(s): **Population-level Estimation**
 - Study type: **Clinical Application**
 - Tags: **-**
 - Study lead: **Evelyn Goh**
-- Study lead forums tag: **gohevelyn669 (https://github.com/gohevelyn669)**
+- Study lead forums tag: **[gohevelyn669](https://github.com/gohevelyn669)**
 - Study start date: **October 1, 2024**
 - Study end date: **-**
 - Protocol: **https://github.com/ohdsi-studies/Glp1Dili/blob/master/Documents/Protocol_proposal.docx**

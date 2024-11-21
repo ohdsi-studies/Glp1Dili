@@ -14,67 +14,41 @@ rootFolder <- getwd()
 
 studyStartDate <- '20171201' #YYYYMMDD
 studyEndDate <- '20231231'   #YYYYMMDD
-# This is lame but has to be done
-studyStartDateWithHyphens <- '2017-12-01' #YYYYMMDD
-studyEndDateWithHyphens <- '2023-12-31'   #YYYYMMDD
+
+# Define time at risk
+timeAtRisks <- tibble(
+  labelTar = c("On treatment"),
+  riskWindowStart = c(1),
+  startAnchor = c("cohort start"),
+  riskWindowEnd = c(0),
+  endAnchor = c("cohort end")
+)
 
 
 # Probably don't change below this line ----------------------------------------
+useCleanWindowForPriorOutcomeLookback <- FALSE # If FALSE, lookback window is all time prior, i.e., including only first events
+psMatchMaxRatio <- 1 # If bigger than 1, the outcome model will be conditioned on the matched set
 
-useCleanWindowForPriorOutcomeLookback <- TRUE # If FALSE, lookback window is all time prior, i.e., including only first events
-priorOutcomeLookback365 <- 365
-psMatchMaxRatio <- 99 # If bigger than 1, the outcome model will be conditioned on the matched set
-# OneToOnePsMatchMaxRatio <- 1 # If bigger than 1, the outcome model will be conditioned on the matched set
-# Define timeAtRisks
-timeAtRisks <- tibble(
-  labelTar = c("On treatment", "90-day"),
-  riskWindowStart = c(1, 1),
-  startAnchor = c("cohort start", "cohort start"),
-  riskWindowEnd = c(0, 91),
-  endAnchor = c("cohort end", "cohort start")
-)
 
-# Don't change below this line (unless you know what you're doing) -------------
+########## Don't change below this line (unless you know what you're doing) ############
 
 
 # Shared Resources -------------------------------------------------------------
 # Get the design assets
 cmTcList <- CohortGenerator::readCsv("inst/cmTcList.csv")
-sccsTList <- CohortGenerator::readCsv("inst/sccsTList.csv")
-sccsIList <- CohortGenerator::readCsv("inst/sccsIList.csv")
 oList <- CohortGenerator::readCsv("inst/oList.csv")
 ncoList <- CohortGenerator::readCsv("inst/negativeControlOutcomes.csv")
 excludedCovariateConcepts <- CohortGenerator::readCsv("inst/excludedCovariateConcepts.csv")
 
 # Get the list of cohorts
-cohortDefinitionSet <- CohortGenerator::getCohortDefinitionSet(
-  settingsFileName = "inst/Cohorts.csv",
-  jsonFolder = "inst/cohorts",
-  sqlFolder = "inst/sql/sql_server"
-)
-
-# OPTIONAL: Create a subset to define the new user cohorts
-# More information: https://ohdsi.github.io/CohortGenerator/articles/CreatingCohortSubsetDefinitions.html
-# subset1 <- CohortGenerator::createCohortSubsetDefinition(
-#   name = "New Users",
-#   definitionId = 1,
-#   subsetOperators = list(
-#     CohortGenerator::createLimitSubset(
-#       priorTime = 365,
-#       limitTo = "firstEver"
-#     )
-#   )
+# cohortDefinitionSet <- CohortGenerator::getCohortDefinitionSet(
+#   settingsFileName = "inst/Cohorts.csv",
+#   jsonFolder = "inst/cohorts",
+#   sqlFolder = "inst/sql/sql_server"
 # )
-# 
-# subsetTargetCohortIds <- unique(c(cmTcList$targetCohortId, cmTcList$comparatorCohortId))
-# cohortDefinitionSet <- cohortDefinitionSet |>
-#   CohortGenerator::addCohortSubsetDefinition(subset1, targetCohortIds = subsetTargetCohortIds)
+cohortDefinitionSet <- readr::read_csv("inst/Cohorts.csv", show_col_types = FALSE)
 
-negativeControlOutcomeCohortSet <- ncoList #%>%
-  # rename(cohortName = "conceptname",
-  #        outcomeConceptId = "conceptid") %>%
-  # mutate(cohortId = row_number() + 1000,
-  #        outcomeConceptId = trimws(outcomeConceptId))
+negativeControlOutcomeCohortSet <- ncoList 
 
 if (any(duplicated(cohortDefinitionSet$cohortId, negativeControlOutcomeCohortSet$cohortId))) {
   stop("*** Error: duplicate cohort IDs found ***")
@@ -89,7 +63,6 @@ negativeControlsShared <- cgModuleSettingsCreator$createNegativeControlOutcomeCo
   detectOnDescendants = TRUE
 )
 cohortGeneratorModuleSpecifications <- cgModuleSettingsCreator$createModuleSpecifications(
-  # incremental = TRUE,
   generateStats = TRUE
 )
 
@@ -99,7 +72,10 @@ cModuleSettingsCreator <- CharacterizationModule$new()
 covariateSettings <- FeatureExtraction::createDefaultCovariateSettings(
   addDescendantsToExclude = TRUE # Keep TRUE because you're excluding concepts
 )
-covariateSettings$MeasurementValueShortTerm = TRUE #Adding measurement values to adjusting variables when they are available
+covariateSettings$DemographicsAge <- TRUE
+covariateSettings$DemographicsPriorObservationTime <- TRUE
+covariateSettings$DemographicsPostObservationTime <- TRUE
+covariateSettings$DemographicsTimeInCohort <- TRUE
 
 characterizationModuleSpecifications <- cModuleSettingsCreator$createModuleSpecifications(
   targetIds = cohortDefinitionSet$cohortId, # NOTE: This is all T/C/I/O
@@ -116,7 +92,6 @@ characterizationModuleSpecifications <- cModuleSettingsCreator$createModuleSpeci
 ciModuleSettingsCreator <- CohortIncidenceModule$new()
 tciIds <- cohortDefinitionSet %>%
   filter(!cohortId %in% oList$outcomeCohortId) %>%
-  filter(!cohortId %in% sccsTList$targetCohortId) %>%
   pull(cohortId)
 targetList <- lapply(
   tciIds,
@@ -153,6 +128,9 @@ analysis1 <- CohortIncidence::createIncidenceAnalysis(
   outcomes = seq_len(nrow(oList)),
   tars = seq_along(tars)
 )
+# Some of the settings require study dates with hyphens
+studyStartDateWithHyphens <- gsub("(\\d{4})(\\d{2})(\\d{2})", "\\1-\\2-\\3", studyStartDate)
+studyEndDateWithHyphens <- gsub("(\\d{4})(\\d{2})(\\d{2})", "\\1-\\2-\\3", studyEndDate)
 irStudyWindow <- CohortIncidence::createDateRange(
   startDate = studyStartDateWithHyphens,
   endDate = studyEndDateWithHyphens
@@ -177,80 +155,39 @@ cohortIncidenceModuleSpecifications <- ciModuleSettingsCreator$createModuleSpeci
 
 
 # CohortMethodModule -----------------------------------------------------------
-# Define psArgs
-psArgs <- tibble(
-  labelPs = c("Variable matching", "PS stratification"),
-  matchOnPsArgs = list(
-    CohortMethod::createMatchOnPsArgs(
-      maxRatio = 99,
-      caliper = 0.2,
-      caliperScale = "standardized logit",
-      allowReverseMatch = FALSE,
-      stratificationColumns = c()
-    ),
-    NULL
-  ),
-  stratifyByPsArgs = list(
-    NULL,
-    CohortMethod::createStratifyByPsArgs(
-      numberOfStrata = 5,
-      stratificationColumns = c(),
-      baseSelection = "all"
-    )
-  ),
-  fitOutcomeModelArgs = list(
-    CohortMethod::createFitOutcomeModelArgs(
-      modelType = "cox",
-      stratified = TRUE, #if 1-to-1 matching, it should be FALSE
-      useCovariates = FALSE,
-      inversePtWeighting = FALSE,
-      prior = Cyclops::createPrior(
-        priorType = "laplace",
-        useCrossValidation = TRUE
-      ),
-      control = Cyclops::createControl(
-        cvType = "auto",
-        seed = 1,
-        resetCoefficients = TRUE,
-        startingVariance = 0.01,
-        tolerance = 2e-07,
-        cvRepetitions = 1,
-        noiseLevel = "quiet"
-      )
-    ),
-    CohortMethod::createFitOutcomeModelArgs(
-      modelType = "cox",
-      stratified = TRUE,  #if 1-to-1 matching, it should be FALSE
-      useCovariates = FALSE,
-      inversePtWeighting = FALSE,
-      prior = Cyclops::createPrior(
-        priorType = "laplace",
-        useCrossValidation = TRUE
-      ),
-      control = Cyclops::createControl(
-        cvType = "auto",
-        seed = 1,
-        resetCoefficients = TRUE,
-        startingVariance = 0.01,
-        tolerance = 2e-07,
-        cvRepetitions = 1,
-        noiseLevel = "quiet"
-      )
-    )
-  )
+
+matchOnPsArgs <- CohortMethod::createMatchOnPsArgs(
+  maxRatio = psMatchMaxRatio,
+  caliper = 0.2,
+  caliperScale = "standardized logit",
+  allowReverseMatch = FALSE,
+  stratificationColumns = c()
 )
 
-# Create an index for all combinations
-combinations <- expand.grid(
-  timeAtRiskIdx = seq_len(nrow(timeAtRisks)),
-  psArgsIdx = seq_len(nrow(psArgs))
+fitOutcomeModelArgs <- CohortMethod::createFitOutcomeModelArgs(
+  modelType = "cox",
+  stratified = if (psMatchMaxRatio == 1) FALSE else TRUE, 
+  useCovariates = FALSE,
+  inversePtWeighting = FALSE,
+  prior = Cyclops::createPrior(
+    priorType = "laplace",
+    useCrossValidation = TRUE
+  ),
+  control = Cyclops::createControl(
+    cvType = "auto",
+    seed = 1,
+    resetCoefficients = TRUE,
+    startingVariance = 0.01,
+    tolerance = 2e-07,
+    cvRepetitions = 1,
+    noiseLevel = "quiet"
+  )
 )
 
 cmModuleSettingsCreator <- CohortMethodModule$new()
 covariateSettings <- FeatureExtraction::createDefaultCovariateSettings(
   addDescendantsToExclude = TRUE # Keep TRUE because you're excluding concepts
 )
-covariateSettings$MeasurementValueShortTerm = TRUE #Adding measurement values to adjusting variables when they are available
 
 outcomeList <- append(
   lapply(seq_len(nrow(oList)), function(i) {
@@ -262,7 +199,7 @@ outcomeList <- append(
       outcomeId = oList$outcomeCohortId[i],
       outcomeOfInterest = TRUE,
       trueEffectSize = NA,
-      priorOutcomeLookback = priorOutcomeLookback365
+      priorOutcomeLookback = priorOutcomeLookback
     )
   }),
   lapply(negativeControlOutcomeCohortSet$cohortId, function(i) {
@@ -316,6 +253,7 @@ computeSharedCovariateBalanceArgs = CohortMethod::createComputeCovariateBalanceA
   maxCohortSize = 250000,
   covariateFilter = NULL
 )
+
 computeCovariateBalanceArgs = CohortMethod::createComputeCovariateBalanceArgs(
   maxCohortSize = 250000,
   covariateFilter = FeatureExtraction::getDefaultTable1Specifications()
@@ -325,44 +263,33 @@ computeCovariateBalanceArgs = CohortMethod::createComputeCovariateBalanceArgs(
 cmAnalysisList <- list()
 
 # Generate cmAnalysisList for each combination
-for (i in seq_len(nrow(combinations))) {
-  timeAtRiskIdx <- combinations$timeAtRiskIdx[i]
-  psArgsIdx <- combinations$psArgsIdx[i]
-  
-  # Retrieve values from timeAtRisks and psArgs using the indices
+for (i in seq_len(nrow(timeAtRisks))) {
   createStudyPopArgs <- CohortMethod::createCreateStudyPopulationArgs(
     firstExposureOnly = FALSE,
     washoutPeriod = 0,
     removeDuplicateSubjects = "keep first",
     censorAtNewRiskWindow = TRUE,
     removeSubjectsWithPriorOutcome = TRUE,
-    priorOutcomeLookback = priorOutcomeLookback365,
-    riskWindowStart = timeAtRisks$riskWindowStart[timeAtRiskIdx],
-    startAnchor = timeAtRisks$startAnchor[timeAtRiskIdx],
-    riskWindowEnd = timeAtRisks$riskWindowEnd[timeAtRiskIdx],
-    endAnchor = timeAtRisks$endAnchor[timeAtRiskIdx],
+    riskWindowStart = timeAtRisks$riskWindowStart[i],
+    startAnchor = timeAtRisks$startAnchor[i],
+    riskWindowEnd = timeAtRisks$riskWindowEnd[i],
+    endAnchor = timeAtRisks$endAnchor[i],
     minDaysAtRisk = 1,
     maxDaysAtRisk = 99999
   )
-  
-  # Set matchOnPsArgs, stratifyByPsArgs, and fitOutcomeModelArgs based on psArgs
-  matchOnPsArgs <- psArgs$matchOnPsArgs[[psArgsIdx]]
-  stratifyByPsArgs <- psArgs$stratifyByPsArgs[[psArgsIdx]]
-  fitOutcomeModelArgs <- psArgs$fitOutcomeModelArgs[[psArgsIdx]]
   
   # Create cmAnalysisList entry
   cmAnalysisList[[i]] <- CohortMethod::createCmAnalysis(
     analysisId = i,
     description = sprintf(
-      "Cohort method, %s, %s",
-      timeAtRisks$labelTar[timeAtRiskIdx],
-      psArgs$labelPs[psArgsIdx]
+      "Cohort method, %s, 1-%d matching",
+      timeAtRisks$labelTar[i],
+      psMatchMaxRatio
     ),
     getDbCohortMethodDataArgs = getDbCohortMethodDataArgs,
     createStudyPopArgs = createStudyPopArgs,
     createPsArgs = createPsArgs,
     matchOnPsArgs = matchOnPsArgs,
-    stratifyByPsArgs = stratifyByPsArgs,
     computeSharedCovariateBalanceArgs = computeSharedCovariateBalanceArgs,
     computeCovariateBalanceArgs = computeCovariateBalanceArgs,
     fitOutcomeModelArgs = fitOutcomeModelArgs
@@ -378,7 +305,7 @@ cohortMethodModuleSpecifications <- cmModuleSettingsCreator$createModuleSpecific
     mdrrThreshold = Inf,
     easeThreshold = 0.25,
     sdmThreshold = 0.1,
-    equipoiseThreshold = 0.25, #changed from 0.2 to 0.25
+    equipoiseThreshold = 0.2,
     generalizabilitySdmThreshold = 1 # NOTE using default here
   )
 )
@@ -514,7 +441,7 @@ analysisSpecifications <- Strategus::createEmptyAnalysisSpecificiations() |>
   Strategus::addModuleSpecifications(characterizationModuleSpecifications) %>%
   Strategus::addModuleSpecifications(cohortIncidenceModuleSpecifications) %>%
   Strategus::addModuleSpecifications(cohortMethodModuleSpecifications) #%>%
-  #Strategus::addModuleSpecifications(selfControlledModuleSpecifications) #SCCS module is turned off for now
+#Strategus::addModuleSpecifications(selfControlledModuleSpecifications) #SCCS module is turned off for now
 
 if (!dir.exists(rootFolder)) {
   dir.create(rootFolder, recursive = TRUE)

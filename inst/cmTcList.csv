@@ -1,3 +1,2 @@
 target_cohort_id,target_cohort_name,comparator_cohort_id,comparator_cohort_name
-11,"GLP1R user (vs DPP4i)",12,"DPP4 user (vs GLP1Ra)"
-21,"GLP1R user (vs SGLT2i)",22,"SGLT2i user (vs GLR1Ra)"
+19018,"GLP1",19019,"DPP4"
