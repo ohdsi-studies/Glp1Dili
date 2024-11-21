@@ -1,7 +1,7 @@
 ################################################################################
 # INSTRUCTIONS: The code below assumes you uploaded results to a PostgreSQL 
-# database per the UploadResults.R script.This script will launch a Shiny
-# results viewer to analyze results from the study.
+# or SQLite database per the UploadResults.R script.This script will launch a 
+# Shiny results viewer to analyze results from the study.
 #
 # See the Working with results section
 # of the UsingThisTemplate.md for more details.
@@ -14,17 +14,15 @@
 library(ShinyAppBuilder)
 library(OhdsiShinyModules)
 
-resultsDatabaseSchema <- "results"
-
-# Specify the connection to the results database
+# Settings ---------------------------------------------------------------------
 resultsConnectionDetails <- DatabaseConnector::createConnectionDetails(
-  dbms = "postgresql",
-  server = Sys.getenv("OHDSI_RESULTS_DATABASE_SERVER"),
-  user = Sys.getenv("OHDSI_RESULTS_DATABASE_USER"),
-  password = Sys.getenv("OHDSI_RESULTS_DATABASE_PASSWORD")
+  dbms = "sqlite",
+  server = "E:/GLP1DiliResults/Results.sqlite"
 )
+resultsDatabaseSchema <- "main"
 
-# ADD OR REMOVE MODULES TAILORED TO YOUR STUDY
+
+# Don't make changes below this line -------------------------------------------
 shinyConfig <- initializeModuleConfig() |>
   addModuleConfig(
     createDefaultAboutConfig()
@@ -35,15 +33,15 @@ shinyConfig <- initializeModuleConfig() |>
   addModuleConfig(
     createDefaultCohortGeneratorConfig()
   ) |>
-  addModuleConfig(
-    createDefaultCohortDiagnosticsConfig()
-  ) |>
+  # addModuleConfig(
+  #   createDefaultCohortDiagnosticsConfig()
+  # ) |>
   addModuleConfig(
     createDefaultCharacterizationConfig()
   ) |>
-  addModuleConfig(
-    createDefaultPredictionConfig()
-  ) |>
+  # addModuleConfig(
+  #   createDefaultPredictionConfig()
+  # ) |>
   addModuleConfig(
     createDefaultEstimationConfig()
   ) 

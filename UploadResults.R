@@ -1,8 +1,8 @@
 ################################################################################
-# INSTRUCTIONS: The code below assumes you have access to a PostgreSQL database
-# and permissions to insert data into tables created by running the 
-# CreateResultsDataModel.R script. This script will loop over all of the 
-# directories found under the "results" folder and upload the results. 
+# INSTRUCTIONS: The code below assumes you have used CreateResultsDataModel.R to
+# create the results data model in a Postgres or SQLite database. This script 
+# will loop over all of the directories found under the "results" folder and 
+# upload the results. 
 #
 # This script also contains some commented out code for 
 # setting read-only permissions for a user account on the results schema. 
@@ -18,16 +18,21 @@
 # https://ohdsi.github.io/Strategus/articles/WorkingWithResults.html
 # ##############################################################################
 
-# Code for uploading results to a Postgres database
-resultsDatabaseSchema <- "results"
-analysisSpecifications <- ParallelLogger::loadSettingsFromJson(
-  fileName = "inst/sampleStudy/sampleStudyAnalysisSpecification.json"
-)
+# Settings ---------------------------------------------------------------------
+# Use the connnection  details to connect to either the Postgres or SQLite database:
 resultsDatabaseConnectionDetails <- DatabaseConnector::createConnectionDetails(
-  dbms = "postgresql",
-  server = Sys.getenv("OHDSI_RESULTS_DATABASE_SERVER"),
-  user = Sys.getenv("OHDSI_RESULTS_DATABASE_USER"),
-  password = Sys.getenv("OHDSI_RESULTS_DATABASE_PASSWORD")
+  dbms = "sqlite",
+  server = "E:/GLP1DiliResults/Results.sqlite"
+)
+resultsDatabaseSchema <- "main"
+# The list of all results folders (one per database on which the script was executed)
+# Each results folder should at least contain a 'strategusOutput' subfolder:
+resultsFolders <- list.dirs(path = "E:/GLP1DiliResults", full.names = T, recursive = F)[1]
+
+
+# Don't make changes below this line -------------------------------------------
+analysisSpecifications <- ParallelLogger::loadSettingsFromJson(
+  fileName = "inst/fullStudyAnalysisSpecification.json"
 )
 
 # Setup logging ----------------------------------------------------------------
@@ -42,7 +47,7 @@ ParallelLogger::addDefaultErrorReportLogger(
 )
 
 # Upload Results ---------------------------------------------------------------
-for (resultFolder in list.dirs(path = "results", full.names = T, recursive = F)) {
+for (resultFolder in resultFolders) {
   resultsDataModelSettings <- Strategus::createResultsDataModelSettings(
     resultsDatabaseSchema = resultsDatabaseSchema,
     resultsFolder = file.path(resultFolder, "strategusOutput"),
@@ -55,12 +60,11 @@ for (resultFolder in list.dirs(path = "results", full.names = T, recursive = F))
   )
 }
 
-connection <- DatabaseConnector::connect(
-  connectionDetails = resultsDatabaseConnectionDetails
-)
-
-
 # Optional scripts to set permissions and to analyze tables ------------------
+# connection <- DatabaseConnector::connect(
+#   connectionDetails = resultsDatabaseConnectionDetails
+# )
+# 
 # # Grant read only permissions to all tables
 # sql <- "GRANT USAGE ON SCHEMA @schema TO @results_user;
 # GRANT SELECT ON ALL TABLES IN SCHEMA @schema TO @results_user; 
