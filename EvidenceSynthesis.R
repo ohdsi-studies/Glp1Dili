@@ -13,15 +13,14 @@
 library(dplyr)
 library(Strategus)
 
-resultsDatabaseSchema <- "results"
+resultsDatabaseSchema <- "main"
 
 # Specify the connection to the results database
-resultsConnectionDetails <- DatabaseConnector::createConnectionDetails(
-  dbms = "postgresql",
-  server = Sys.getenv("OHDSI_RESULTS_DATABASE_SERVER"),
-  user = Sys.getenv("OHDSI_RESULTS_DATABASE_USER"),
-  password = Sys.getenv("OHDSI_RESULTS_DATABASE_PASSWORD")
+resultsDatabaseConnectionDetails <- DatabaseConnector::createConnectionDetails(
+  dbms = "sqlite",
+  server = "E:/GLP1DiliResults/Results.sqlite"
 )
+# connection <- DatabaseConnector::connect(resultsDatabaseConnectionDetails)
 
 esModuleSettingsCreator = EvidenceSynthesisModule$new()
 evidenceSynthesisSourceCm <- esModuleSettingsCreator$createEvidenceSynthesisSource(
@@ -34,17 +33,18 @@ metaAnalysisCm <- esModuleSettingsCreator$createBayesianMetaAnalysis(
   evidenceSynthesisDescription = "Bayesian random-effects alpha 0.05 - adaptive grid",
   evidenceSynthesisSource = evidenceSynthesisSourceCm
 )
-evidenceSynthesisSourceSccs <- esModuleSettingsCreator$createEvidenceSynthesisSource(
-  sourceMethod = "SelfControlledCaseSeries",
-  likelihoodApproximation = "adaptive grid"
-)
-metaAnalysisSccs <- esModuleSettingsCreator$createBayesianMetaAnalysis(
-  evidenceSynthesisAnalysisId = 2,
-  alpha = 0.05,
-  evidenceSynthesisDescription = "Bayesian random-effects alpha 0.05 - adaptive grid",
-  evidenceSynthesisSource = evidenceSynthesisSourceSccs
-)
-evidenceSynthesisAnalysisList <- list(metaAnalysisCm, metaAnalysisSccs)
+evidenceSynthesisAnalysisList <- list(metaAnalysisCm)
+# evidenceSynthesisSourceSccs <- esModuleSettingsCreator$createEvidenceSynthesisSource(
+#   sourceMethod = "SelfControlledCaseSeries",
+#   likelihoodApproximation = "adaptive grid"
+# )
+# metaAnalysisSccs <- esModuleSettingsCreator$createBayesianMetaAnalysis(
+#   evidenceSynthesisAnalysisId = 2,
+#   alpha = 0.05,
+#   evidenceSynthesisDescription = "Bayesian random-effects alpha 0.05 - adaptive grid",
+#   evidenceSynthesisSource = evidenceSynthesisSourceSccs
+# )
+# evidenceSynthesisAnalysisList <- list(metaAnalysisCm, metaAnalysisSccs)
 evidenceSynthesisAnalysisSpecifications <- esModuleSettingsCreator$createModuleSpecifications(
   evidenceSynthesisAnalysisList
 )
@@ -53,7 +53,7 @@ esAnalysisSpecifications <- Strategus::createEmptyAnalysisSpecificiations() |>
 
 ParallelLogger::saveSettingsToJson(
   esAnalysisSpecifications, 
-  file.path("inst/sampleStudy/esAnalysisSpecification.json"))
+  file.path("inst/esAnalysisSpecification.json"))
 
 
 resultsExecutionSettings <- Strategus::createResultsExecutionSettings(
@@ -68,6 +68,7 @@ Strategus::execute(
   connectionDetails = resultsConnectionDetails
 )
 
+# Upload evidence synthesis results to results database ------------------------
 resultsDataModelSettings <- Strategus::createResultsDataModelSettings(
   resultsDatabaseSchema = resultsDatabaseSchema,
   resultsFolder = resultsExecutionSettings$resultsFolder,
