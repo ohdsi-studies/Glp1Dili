@@ -280,7 +280,7 @@ plotKaplanMeier <- function(kaplanMeier,
                    legend.position = "top",
                    legend.key.size = ggplot2::unit(1, "lines"),
                    plot.title = ggplot2::element_text(hjust = 0.5)) +
-    ggplot2::theme(axis.title.y = ggplot2::element_text(vjust = -10))
+    ggplot2::theme(axis.title.y = element_text(margin = margin(r = 10))) #ggplot2::theme(axis.title.y = ggplot2::element_text(vjust = -10)) +
   
   if(!is.null(pValue)){
     if(is.null(pValueLocation)|(pValueLocation=="right lower")){
@@ -320,7 +320,7 @@ plotKaplanMeier <- function(kaplanMeier,
     comparatorAtRisk <- kaplanMeier$comparatorAtRisk[!is.na(kaplanMeier$comparatorAtRisk)&(kaplanMeier$time%in%xBreaks)]
   }
   
-  labels <- data.frame(x = c(0, xBreaks, xBreaks),
+  labels <- data.frame(x = c(min(xBreaks), xBreaks, xBreaks),
                        y = as.factor(c("Number at risk",
                                        rep(targetName, length(xBreaks)),
                                        rep(comparatorName, length(xBreaks)))),
@@ -343,7 +343,8 @@ plotKaplanMeier <- function(kaplanMeier,
                    axis.text.x = ggplot2::element_text(color = "white"),
                    axis.title.x = ggplot2::element_text(color = "white"),
                    axis.title.y = ggplot2::element_blank(),
-                   axis.ticks = ggplot2::element_line(color = "white")
+                   axis.ticks = ggplot2::element_line(color = "white"), 
+                   plot.margin = margin(t = 5, r = 5, b = 5, l = 5)  # Adjust plot margins
     )
   plots <- list(plot, dataTable)
   grobs <- widths <- list()
@@ -391,7 +392,7 @@ prepareTable1 <- function(balance,
                           percentDigits = 1,
                           stdDiffDigits = 2,
                           output = "latex",
-                          pathToCsv = "./inst/Table1Specs.csv") {
+                          pathToCsv = "Table1Specs.csv") {
   if (output == "latex") {
     space <- " "
   } else {

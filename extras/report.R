@@ -49,10 +49,10 @@ comparatorColorB <- col2rgb(colorComparator)[3]/255#255/255
 # DatabaseConnector::downloadJdbcDrivers("postgresql")
 connectionDetails <- DatabaseConnector::createConnectionDetails(
   dbms = "postgresql",
-  server = "",
-  port = "",
-  user = "",
-  password = "",
+  server = Sys.getenv("glp1_dili_server"),
+  port = Sys.getenv("glp1_dili_port"),
+  user = Sys.getenv("glp1_dili_user"),
+  password = Sys.getenv("glp1_dili_password"),
   pathToDriver = Sys.getenv("DATABASECONNECTOR_JAR_FOLDER")
 )
 connection <- DatabaseConnector::connect(connectionDetails)
@@ -144,7 +144,7 @@ dbTidy$cdmSourceAbbreviation[grep("Optum.*Clinformatics.*Extended Data Mart.*DOD
 dbTidy$cdmSourceAbbreviation[grep("Optum EHR",dbTidy$cdmSourceName)] <- "Optum EHR(US)"
 dbTidy$cdmSourceAbbreviation[grep("PharMetrics",dbTidy$cdmSourceName)] <- "PharMetrics(US)"
 dbTidy$cdmSourceAbbreviation[grep("Veterans Affairs",dbTidy$cdmSourceName)] <- "VA(US)"
-dbTidy$cdmSourceAbbreviation[grep("SevCDM",dbTidy$cdmSourceName)] <- "YUHS(KR)"
+dbTidy$cdmSourceAbbreviation[grep("CDM",dbTidy$cdmSourceName)] <- "YUHS(KR)"
 dbTidy$cdmSourceAbbreviation[grep("LPD.*Australia",dbTidy$cdmSourceName)] <- "LPD Australia(AU)"
 dbTidy$cdmSourceAbbreviation[grep("Merative.* Medicaid Database",dbTidy$cdmSourceName)] <- "MDCD(US)"
 dbTidy$cdmSourceAbbreviation[grep("Merative.* Benefits Database",dbTidy$cdmSourceName)] <- "MDCR(US)"
@@ -152,7 +152,7 @@ dbTidy$cdmSourceAbbreviation[grep("Health Verity Comprehensive Claims - Closed C
 dbTidy$cdmSourceAbbreviation[grep("Merative.* Encounters Database",dbTidy$cdmSourceName)] <- "CCAE(US)"
 dbTidy$cdmSourceAbbreviation[grep("LRx/Dx, US9-LAAD",dbTidy$cdmSourceName)] <- "LAAD(US)"
 dbTidy$cdmSourceAbbreviation[grep("France Disease Analyzer",dbTidy$cdmSourceName)] <- "FDA(FR)"
-
+dbTidy$cdmSourceAbbreviation[grep("Taipei Medical University",dbTidy$cdmSourceName)] <- "TMUCRD(TW)"
 
 country <- stringr::str_extract(dbTidy$cdmSourceAbbreviation, "\\([A-Z][A-Z]\\)") %>% stringr::str_remove_all("\\(|\\)")
 country <- factor(country, c("US","TW", "KR","JP", "AU", "DE","BE","IT", "FR"))
@@ -265,66 +265,65 @@ resultList <- diagnosticsSummary %>%
 # #                         limit = 0)
 # 
 # 
-# ####Attrition Summary and Inicdence rate####
-# cmAttrition <- ohdsiPullTable(connection = connection,
-#                             resultsSchema = resultsSchema,###
-#                             targetTable = "cm_attrition",
-#                             limit = 0)
-# cmResult <- ohdsiPullTable(connection = connection,
-#                          resultsSchema = resultsSchema,###
-#                          targetTable = "cm_result", #"cd_cohort"
-#                          limit = 0)
-# # tcoTidy
-# # check (analysisPrime)
-# attritionPrime <- cmAttrition %>%
-#   left_join(dbTidy, by = "databaseId") %>%
-#   filter(analysisId == analysisIdPrime) %>%
-#   filter(outcomeId == 16968)
-# 
-# 
-# ## GLP1RA vs DPP4i
-# # Original cohorts (GLP1RA)
-# glp_glpdpp_orgin <- attritionPrime %>%
-#   filter (comparatorId == 19019) %>%
-#   filter (exposureId == 19018) %>%
-#   filter (sequenceNumber == 1) %>%
-#   arrange(dbOrder) %>%
-#   select(subjects, dbOrder) %>%
-#   rename(fq_fqtmp_orgin = subjects)
-# 
-# # Original cohorts (DPP4i)
-# dpp_glpdpp_orgin <- attritionPrime %>%
-#   filter (comparatorId == 19019) %>%
-#   filter (exposureId == 19019) %>%
-#   filter (sequenceNumber == 1) %>%
-#   arrange(dbOrder) %>%
-#   select(subjects, dbOrder) %>%
-#   rename(tmp_fqtmp_orgin = subjects)
-# 
-# # Matched cohorts (GLP1RA)
-# glp_glpdpp_matched <- attritionPrime %>%
-#   filter (comparatorId == 19019) %>%
-#   filter (exposureId == 19018) %>%
-#   filter (sequenceNumber == 6) %>%
-#   left_join(cmResult, by = c("analysisId", "targetId", "comparatorId", "outcomeId", "databaseId")) %>%
-#   arrange(dbOrder) %>%
-#   select(subjects, dbOrder, targetSubjects, targetDays, targetOutcomes) %>%
-#   mutate(fq_fqtmp_matched_incidence = targetOutcomes/targetDays) %>%
-#   rename(fq_fqtmp_matched_subjects = subjects, fq_fqtmp_matched_subjects_cm = targetSubjects, fq_fqtmp_matched_days = targetDays, fq_fqtmp_matched_outcome = targetOutcomes)
-# 
-# 
-# # Matched cohorts (DPP4i)
-# dpp_glpdpp_matched <- attritionPrime %>%
-#   filter (comparatorId == 19019) %>%
-#   filter (exposureId == 19019) %>%
-#   filter (sequenceNumber == 6) %>%
-#   left_join(cmResult, by = c("analysisId", "targetId", "comparatorId", "outcomeId", "databaseId")) %>%
-#   arrange(dbOrder) %>%
-#   select(subjects, dbOrder, comparatorSubjects, comparatorDays, comparatorOutcomes) %>%
-#   mutate(tmp_fqtmp_matched_incidence = comparatorOutcomes/comparatorDays) %>%
-#   rename(tmp_fqtmp_matched = subjects, tmp_fqtmp_matched_subjects_cm = comparatorSubjects, tmp_fqtmp_matched_days = comparatorDays, tmp_fqtmp_matched_outcome = comparatorOutcomes)
-# 
-# 
+####Attrition Summary and Inicdence rate####
+####Attrition Summary and Inicdence rate####
+cmAttrition <- ohdsiPullTable(connection = connection,
+                              resultsSchema = resultsSchema,###
+                              targetTable = "cm_attrition",
+                              limit = 0)
+cmResult <- ohdsiPullTable(connection = connection,
+                           resultsSchema = resultsSchema,###
+                           targetTable = "cm_result", #"cd_cohort"
+                           limit = 0)
+# tcoTidy
+# check (analysisPrime)
+attritionPrime <- cmAttrition %>%
+  left_join(dbTidy, by = "databaseId") %>%
+  filter(analysisId == analysisIdPrime) %>%
+  filter(outcomeId == 16968)
+
+
+## GLP1RA vs DPP4i
+# Original cohorts (GLP1RA)
+glp_glpdpp_orgin <- attritionPrime %>%
+  filter (comparatorId == 19019) %>%
+  filter (exposureId == 19018) %>%
+  filter (sequenceNumber == 1) %>%
+  arrange(dbOrder) %>%
+  select(subjects, dbOrder) %>%
+  rename(glp_glpdpp_orgin = subjects)
+
+# Original cohorts (DPP4i)
+dpp_glpdpp_orgin <- attritionPrime %>%
+  filter (comparatorId == 19019) %>%
+  filter (exposureId == 19019) %>%
+  filter (sequenceNumber == 1) %>%
+  arrange(dbOrder) %>%
+  select(subjects, dbOrder) %>%
+  rename(dpp_glpdpp_orgin = subjects)
+
+# Matched cohorts (GLP1RA)
+glp_glpdpp_matched <- attritionPrime %>%
+  filter (comparatorId == 19019) %>%
+  filter (exposureId == 19018) %>%
+  filter (sequenceNumber == 6) %>%
+  left_join(cmResult, by = c("analysisId", "targetId", "comparatorId", "outcomeId", "databaseId")) %>%
+  arrange(dbOrder) %>%
+  select(subjects, dbOrder, targetSubjects, targetDays, targetOutcomes) %>%
+  mutate(glp_glpdpp_matched_incidence = targetOutcomes/targetDays) %>%
+  rename(glp_glpdpp_matched_subjects = subjects, glp_glpdpp_matched_subjects_cm = targetSubjects, glp_glpdpp_matched_days = targetDays, glp_glpdpp_matched_outcome = targetOutcomes)
+
+
+# Matched cohorts (DPP4i)
+dpp_glpdpp_matched <- attritionPrime %>%
+  filter (comparatorId == 19019) %>%
+  filter (exposureId == 19019) %>%
+  filter (sequenceNumber == 6) %>%
+  left_join(cmResult, by = c("analysisId", "targetId", "comparatorId", "outcomeId", "databaseId")) %>%
+  arrange(dbOrder) %>%
+  select(subjects, dbOrder, comparatorSubjects, comparatorDays, comparatorOutcomes) %>%
+  mutate(dpp_glpdpp_matched_incidence = comparatorOutcomes/comparatorDays) %>%
+  rename(dpp_glpdpp_matched = subjects, dpp_glpdpp_matched_subjects_cm = comparatorSubjects, dpp_glpdpp_matched_days = comparatorDays, dpp_glpdpp_matched_outcome = comparatorOutcomes)
 
 # ## FQ vs CPH
 # # Original cohorts (FQ)
@@ -367,19 +366,17 @@ resultList <- diagnosticsSummary %>%
 #   mutate(cph_fqcph_matched_incidence = comparatorOutcomes/comparatorDays) %>%
 #   rename(cph_fqcph_matched = subjects, cph_fqcph_matched_subjects_cm = comparatorSubjects, cph_fqcph_matched_days = comparatorDays, cph_fqcph_matched_outcome = comparatorOutcomes)
 
-# 
-# dbTemp <- dbTidy %>%
-#   select(cdmSourceAbbreviation, dbOrder)
-# attritionIncidenceSummary <- dbTemp %>%
-#   left_join(glp_glpdpp_orgin, by = "dbOrder")%>%
-#   left_join(glp_glpdpp_matched, by = "dbOrder")%>%
-#   left_join(dpp_glpdpp_orgin, by = "dbOrder")%>%
-#   left_join(dpp_glpdpp_matched, by = "dbOrder")
-# 
-# ###negative values and incidence calculation are needed
-# 
-# write.csv(attritionIncidenceSummary, file.path(resultFolder, "attrition_incidence_summary.csv"))
-# 
+dbTemp <- dbTidy %>%
+  select(cdmSourceAbbreviation, dbOrder)
+attritionIncidenceSummary <- dbTemp %>%
+  left_join(glp_glpdpp_orgin, by = "dbOrder")%>%
+  left_join(glp_glpdpp_matched, by = "dbOrder")%>%
+  left_join(dpp_glpdpp_orgin, by = "dbOrder")%>%
+  left_join(dpp_glpdpp_matched, by = "dbOrder")
+
+###negative values and incidence calculation are needed
+
+write.csv(attritionIncidenceSummary, file.path(resultFolder, "attrition_incidence_summary.csv"))
 
 
 ####Balance table and plot####
@@ -903,13 +900,13 @@ resultListForSurvival <- resultList %>%
   filter(isPrimaryAnalysis == 1) %>%
   filter(isPrimaryTco == 1) #%>% filter(unblind == 1) #only results passing the diagnostics
 
-yLimUpperBound =
-  1- kaplanMeierDist %>%
-  filter(analysisId %in% unique(resultListForSurvival$analysisId)) %>%
-  filter(outcomeId %in% unique(resultListForSurvival$outcomeId)) %>%
-  summarise(yLimUpperBound = min(targetSurvivalLb, comparatorSurvivalLb))
-#convert into percent (*100)
-yLimUpperBound = round(yLimUpperBound*100*1.3, digits = 2)
+# yLimUpperBound =
+#   1- kaplanMeierDist %>%
+#   filter(analysisId %in% unique(resultListForSurvival$analysisId)) %>%
+#   filter(outcomeId %in% unique(resultListForSurvival$outcomeId)) %>%
+#   summarise(yLimUpperBound = min(targetSurvivalLb, comparatorSurvivalLb))
+# #convert into percent (*100)
+# yLimUpperBound = round(yLimUpperBound*100*1.3, digits = 2)
 
 for (i in seq(nrow(resultListForSurvival))){
   
@@ -970,7 +967,7 @@ for (i in seq(nrow(resultListForSurvival))){
   p <-plotKaplanMeier(kaplanMeier,
                       targetName,
                       comparatorName,
-                      ylims = c(0,0.25),#c(0,round(max(kaplanMeier$comparatorSurvivalUb,kaplanMeier$targetSurvivalUb),2)+0.02),
+                      ylims = c(0,0.60),#c(0,round(max(kaplanMeier$comparatorSurvivalUb,kaplanMeier$targetSurvivalUb),2)+0.02),
                       xBreaks = NULL,#seq(from = 0,to = 2000, by = 250),#c(0,100,200,300),
                       targetColorR = targetColorR,
                       targetColorG = targetColorG,
@@ -1002,12 +999,12 @@ for (i in seq(nrow(resultListForSurvival))){
                                                           comparatorName,
                                                           outcomeId,
                                                           analysisId)), p, device = "pdf", width = 19, height = 12, units = "cm", dpi = 400)
-  ggplot2::ggsave(file.path(resultFolder,"kmplot",sprintf("km_plot_%s_t%s_c%s_o%d_a%d.tiff",
-                                                          databaseId,
-                                                          targetId,
-                                                          comparatorId,
-                                                          outcomeId,
-                                                          analysisId)), p, device = "tiff", width = 16, height = 12, units = "cm", dpi = 400)
+  # ggplot2::ggsave(file.path(resultFolder,"kmplot",sprintf("km_plot_%s_t%s_c%s_o%d_a%d.tiff",
+  #                                                         databaseId,
+  #                                                         targetId,
+  #                                                         comparatorId,
+  #                                                         outcomeId,
+  #                                                         analysisId)), p, device = "tiff", width = 16, height = 12, units = "cm", dpi = 400)
   
 }
 # #####
