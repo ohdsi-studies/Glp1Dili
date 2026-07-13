@@ -1,0 +1,131 @@
+cohort_id,cohort_name,outcome_concept_id
+10001,Abnormal posture,439935
+10002,Abrasion and/or friction burn of multiple sites,443585
+10003,Abrasion and/or friction burn of trunk without infection,199192
+10004,Absence of breast,4088290
+10005,Acanthosis nigricans,4299544
+10006,Acquired hallux valgus,75911
+10007,Acquired keratoderma,137951
+10008,Acute conjunctivitis,376707
+10009,Acute tonsillitis,24660
+10010,Adhesive capsulitis of shoulder,77644
+10011,Alcoholism,4218106
+10012,Allergic rhinitis,257007
+10013,Anal and rectal polyp,73241
+10014,Anomaly of jaw size,45757682
+10015,Benign paroxysmal positional vertigo,81878
+10016,Blepharitis,378425
+10017,Bronchiectasis,256449
+10018,Burn of forearm,133655
+10019,Burping,4152350
+10020,Cachexia,134765
+10021,Calcaneal spur,73560
+10022,Callosity,4067069
+10023,Candidiasis of skin,4172458
+10024,Cannabis dependence,440387
+10025,Carpal tunnel syndrome,380094
+10026,Cerebral palsy,4134120
+10027,Cervical radiculopathy,137548
+10028,Chalazion,381581
+10029,Changes in skin texture,140842
+10030,Chondromalacia of patella,81378
+10031,Chronic obstructive lung disease,255573
+10032,Cocaine abuse,432303
+10033,Complication due to Crohn's disease,46269889
+10034,Complication of gastrostomy,434675
+10035,Contact dermatitis,134438
+10036,Contusion of knee,78619
+10037,Costal chondritis,4272340
+10038,Coxsackie virus disease,436027
+10039,Crohn's disease,201606
+10040,Cystic fibrosis,441267
+10041,Cyst of ovary,197610
+10042,Dental caries,133228
+10043,Derangement of knee,76786
+10044,Developmental delay,436077
+10045,Deviated nasal septum,377910
+10046,Disease due to Papilloma virus,4147672
+10047,Dislocation of shoulder joint,4213373
+10048,Disproportion of reconstructed breast,45757370
+10049,Dysplasia of cervix,192367
+10050,Endometriosis (clinical),433527
+10051,Epicondylitis,4249170
+10052,Epidermoid cyst,4170770
+10053,Foreign body in ear,374801
+10054,Foreign body in orifice,259995
+10055,Galactosemia,439788
+10056,Ganglion cyst,40481632
+10057,Genital herpes simplex,74855
+10058,Gout,440674
+10059,Hammer toe,433577
+10060,Hemochromatosis,4163735
+10061,Hemorrhoids,195562
+10062,Hereditary thrombophilia,4231770
+10063,Homocystinuria,4012934
+10064,Hordeolum,4265426
+10065,Human papilloma virus infection,441788
+10066,Hydrocele of testis,4131791
+10067,Hyperlipidemia,432867
+10068,Hyperosmolality and or hypernatremia,441829
+10069,Hypoparathyroidism,140362
+10070,Impacted cerumen,374375
+10071,Impingement syndrome of shoulder region,4344500
+10072,"Infection AND/OR inflammatory reaction due to internal prosthetic device, implant AND/OR graft",440276
+10073,Influenza,4266367
+10074,Ingrowing nail,139099
+10075,Injury of knee,444132
+10076,Jellyfish poisoning,4265896
+10077,Laceration of perineum,4152967
+10078,Late effect of contusion,434203
+10079,Late effect of motor vehicle accident,438329
+10080,Lateral epicondylitis,81379
+10081,Lipid storage disease,4027782
+10082,Low back pain,194133
+10083,Lymphangioma,433997
+10084,Marfan's syndrome,258540
+10085,Melena,4103703
+10086,Ménière's disease,79833
+10087,Metabolic syndrome X,436940
+10088,Minimal cognitive impairment,439795
+10089,Nicotine dependence,4209423
+10090,Noise effects on inner ear,377572
+10091,Non-toxic multinodular goiter,136368
+10092,Non-toxic uninodular goiter,134898
+10093,Obstruction of urethra,4318847
+10094,Onychomycosis due to dermatophyte,140648
+10095,Osteoarthritis of knee,4079750
+10096,Osteoporosis,80502
+10097,Overactive bladder,37206607
+10098,Parkinson's disease,381270
+10099,Perforation of tympanic membrane,375292
+10100,Plantar fasciitis,4002650
+10101,Pneumothorax,253796
+10102,Postviral fatigue syndrome,4202045
+10103,Prolapse of intestine,4295888
+10104,Prostatitis,194997
+10105,Psychalgia,439790
+10106,Ptosis of eyelid,374044
+10107,Ptotic breast,81634
+10108,Radial styloid tenosynovitis,73300
+10109,Regular astigmatism,380706
+10110,Sciatica,372409
+10111,Senile hyperkeratosis,141932
+10112,Sickling disorder due to hemoglobin S,4213628
+10113,Sleep apnea,313459
+10114,Solitary nodule of lung,4142875
+10115,Somatic dysfunction of lumbar region,36713918
+10116,"Splinter of face, without major open wound",443172
+10117,Sprain of ankle,81151
+10118,Symbolic dysfunction,432436
+10119,Tear film insufficiency,378427
+10120,Tinea pedis,133141
+10121,Tobacco dependence syndrome,437264
+10122,Tooth loss,433244
+10123,Tracheostomy present,4201387
+10124,Type 1 diabetes mellitus without complication,443412
+10125,Ureteric stone,201916
+10126,Uterine prolapse,4092565
+10127,Verruca vulgaris,140641
+10128,Vitamin D deficiency,436070
+10129,Wristdrop,440193
+10130,Wrist joint pain,4115367
