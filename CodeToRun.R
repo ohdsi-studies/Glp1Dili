@@ -18,25 +18,20 @@ Sys.setenv("VROOM_THREADS"=1) # Sets the number of threads to 1 to avoid deadloc
 options(andromedaTempFolder = "e:/andromedaTemp") # Where temp Andromeda files will be written
 
 ##=========== START OF INPUTS ==========
-options(sqlRenderTempEmulationSchema = "scratch.scratch_mschuemi") # For database platforms that don't support temp tables
-cdmDatabaseSchema <- "jmdc.cdm_jmdc_v3044" # The database / schema where the data in CDM format live
-workDatabaseSchema <- "scratch.scratch_mschuemi" # A database /schema where study tables can be written
-cohortTableName <- "sample_study_jmdc" # Where the cohorts will be written
-outputLocation <- "e:/testGlp1Dili" # Where the intermediate and output files will be written
-databaseName <- "JMDC" # Only used as a folder name for results from the study
-minCellCount <- 5 # Minimum cell count for inclusion in output tables
+options(sqlRenderTempEmulationSchema = "[your temp emulation schema, if needed]")
+cdmDatabaseSchema <- "[your CDM database schema]"
+workDatabaseSchema <- "[a database/schema you can write to]"
+cohortTableName <- "[name for your cohort table]"
+outputLocation <- "[local path for intermediate/output files]"
+databaseName <- "[a short name for your database, used as a folder name]"
+minCellCount <- 5
 
-
-# Create the connection details for your CDM
-# More details on how to do this are found here:
-# https://ohdsi.github.io/DatabaseConnector/reference/createConnectionDetails.html
 connectionDetails <- DatabaseConnector::createConnectionDetails(
-  dbms = "spark",
-  connectionString = keyring::key_get("databricksConnectionString"),
-  user = "token",
-  password = keyring::key_get("databricksToken")
+  dbms = "[your dbms, e.g. postgresql, sql server, spark]",
+  connectionString = "[your connection details]",
+  user = "[your username]",
+  password = "[your password, ideally via keyring::key_get()]"
 )
-
 
 # You can use this snippet to test your connection
 #conn <- DatabaseConnector::connect(connectionDetails)
