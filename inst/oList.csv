@@ -1,2 +1,7 @@
 outcome_cohort_id,outcome_cohort_name,clean_window
-16968,"Acute Liver Injury",365
+16968,Acute Liver Injury,365
+1795525,Cholelithiasis,365
+1795526,Cholecystitis,365
+1795527,Chronic Liver Disease,365
+1795521,ALI Lab Values 1,365
+1795524,ALI Lab Values,365

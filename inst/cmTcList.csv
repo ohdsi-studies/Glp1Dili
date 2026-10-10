@@ -1,2 +1,3 @@
 target_cohort_id,target_cohort_name,comparator_cohort_id,comparator_cohort_name
-19018,"GLP1",19019,"DPP4"
+19018,GLP1,19019,DPP4
+19018,GLP1,1793297,SGLT2
